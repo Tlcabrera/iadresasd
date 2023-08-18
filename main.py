@@ -50,13 +50,14 @@ from langchain.llms import OpenAI
 
 chain = load_qa_chain(OpenAI(), chain_type="stuff")
 
+"""
 query = "cual es el nombre completo del paciente"
 docs = docsearch.similarity_search(query)
 print(chain.run(input_documents=docs, question=query))
-
+"""
 
 #endopoints
-@app.post("/leepdf")  
+@app.post("/juridica")  
 def generate_response_pdf(prompt:Prompt):
    query = prompt.text
    docs = docsearch.similarity_search(query)
