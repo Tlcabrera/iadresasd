@@ -1,0 +1,8 @@
+Activar entorno 
+tutorial-env\Scripts\activate.bat
+
+Correr el servidor de fast-api
+uvicorn main:app --port 3000 --reload
+
+Acceder al servidor local
+http://127.0.0.1:3000/docs
