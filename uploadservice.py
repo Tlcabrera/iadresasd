@@ -51,6 +51,7 @@ class UploadService():
                 print(len(texts))
                 embeddings = OpenAIEmbeddings()
                 docsearch = FAISS.from_texts(texts, embeddings)
+                
                 return docsearch
         except Exception as e:
             print("Error:", str(e))

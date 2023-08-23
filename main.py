@@ -8,7 +8,7 @@ from fastapi import FastAPI, UploadFile,File
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import ElasticVectorSearch, Pinecone, Weaviate, FAISS
-from models.model import Prompt
+
 from uploadservice import UploadService
 from routes.routes import routes
 
