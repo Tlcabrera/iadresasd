@@ -1,5 +1,17 @@
+Instalar entorno
+pip install Virtualenv
+
+Crear entorno virtual
+python -m venv tutorial-env
+
 Activar entorno 
-tutorial-env\Scripts\activate.bat
+env\Scripts\activate.bat
+
+Crear requirements
+pip freeze > requirements.txt
+
+Instalar requirements
+pip install -r requirements.txt
 
 Correr el servidor de fast-api
 uvicorn main:app --port 3000 --reload
