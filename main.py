@@ -10,6 +10,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import ElasticVectorSearch, Pinecone, Weaviate, FAISS
 from models.model import Prompt
 from uploadservice import UploadService
+from routes.routes import routes
 
 # Get your API keys from openai, you will need to create an account. 
 # Here is the link to get the keys: https://platform.openai.com/account/billing/overview
@@ -17,6 +18,7 @@ from uploadservice import UploadService
 
 app=FastAPI()
 load_dotenv()
+app.include_router(routes)
 
 api_key = os.environ["OPENAI_API_KEY"]
 
@@ -27,9 +29,8 @@ docs = docsearch.similarity_search(query)
 print(chain.run(input_documents=docs, question=query))
 """
 
-#endopoints
-  
-
+#endpoints
+"""
 @app.post("/juridica")  
 async def generate_response_pdf(prompt:str,file: UploadFile = File(...)):
     try:
@@ -48,7 +49,7 @@ async def generate_response_pdf(prompt:str,file: UploadFile = File(...)):
     
     except Exception as e:
         print("Error:", str(e))
-
+"""
     
     
     
