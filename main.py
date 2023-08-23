@@ -7,7 +7,9 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import ElasticVectorSearch, Pinecone, Weaviate, FAISS
 from models.model import Prompt
-
+from config.db import collection_prompt
+from schema.schemas import list_all
+from bson import ObjectId
 # Get your API keys from openai, you will need to create an account. 
 # Here is the link to get the keys: https://platform.openai.com/account/billing/overview
 
@@ -56,11 +58,23 @@ docs = docsearch.similarity_search(query)
 print(chain.run(input_documents=docs, question=query))
 """
 
+
 #endopoints
+@app.get("/prompts")
+async def get_response_prompt():
+    prompts = list_all(collection_prompt.find())
+    return prompts
+
 @app.post("/juridica")  
-def generate_response_pdf(prompt:Prompt):
+async def generate_response_pdf(prompt:Prompt):
+   data = collection_prompt.insert_one({"text":prompt.text}) 
    query = prompt.text
    docs = docsearch.similarity_search(query)
    return chain.run(input_documents=docs, question=query)
+
+@app.get("/prompt/{id}")  
+async def generate_response_pdf(id: str):
+   prompts = list_all(collection_prompt.find({"_id": ObjectId(id)}))
+   return prompts
 
 
