@@ -58,9 +58,11 @@ class UploadService():
                 #print(texts)
 
                 embeddings = OpenAIEmbeddings()
+                
                 docsearch = FAISS.from_texts(texts, embeddings)
-                print(f'Embeddings{docsearch}')
+                return docsearch
 
+                """
                 # Crear una lista para guardar los datos de los embeddings
                 embedding_data = []
                 for text, embedding in zip(texts, docsearch.embeddings):
@@ -75,7 +77,7 @@ class UploadService():
                 df.to_csv(csv_filename, index=False, encoding="utf-8")
 
                 print(f"Los embeddings se han guardado en {csv_filename}")
-
+            """
            
 
                 
