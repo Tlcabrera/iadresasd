@@ -31,12 +31,13 @@ print(chain.run(input_documents=docs, question=query))
   
 
 @app.post("/juridica")  
-async def generate_response_pdf(file: UploadFile = File(...)):
+async def generate_response_pdf(prompt:str,file: UploadFile = File(...)):
     try:
         #Carga y embedding del archivo
         data=await UploadService().analize_file(file)
         #Captura el prompt
-        query = "cual es el nombre del paciente"
+        #query = "cual es el nombre del paciente"
+        query=prompt
          
         from langchain.chains.question_answering import load_qa_chain
         from langchain.llms import OpenAI
