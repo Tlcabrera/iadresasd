@@ -2,16 +2,22 @@
 import os
 import re
 from os import getcwd
-
+import pandas as pd
 # FastAPI imports
+
 from PyPDF2 import PdfReader
-from dotenv import load_dotenv
-from fastapi import FastAPI, UploadFile,File
+from fastapi import UploadFile,File
+from faiss import IndexFlatL2
+
+
+import numpy as np
+import pickle 
 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import ElasticVectorSearch, Pinecone, Weaviate, FAISS
 from models.model import Prompt
+from config.db import collection_embeddings
 
 
 class UploadService():
@@ -29,7 +35,7 @@ class UploadService():
                 f.close()
                 data=f"./{file.filename}"
                 reader = PdfReader(data)
-                print(reader)
+                #print(reader)
                 # read data from the file and put them into a variable called raw_text
                 raw_text = ''
                 for i, page in enumerate(reader.pages):
@@ -37,7 +43,7 @@ class UploadService():
                     if text:
                         raw_text += text
 
-                print(raw_text[:100])
+                #print(raw_text[:100])
                 # We need to split the text that we read into smaller chunks so that during information retreival we don't hit the token size limits. 
 
                 text_splitter = CharacterTextSplitter(        
@@ -49,9 +55,30 @@ class UploadService():
                 texts = text_splitter.split_text(raw_text)
 
                 print(len(texts))
+                #print(texts)
+
                 embeddings = OpenAIEmbeddings()
                 docsearch = FAISS.from_texts(texts, embeddings)
+                print(f'Embeddings{docsearch}')
+
+                # Crear una lista para guardar los datos de los embeddings
+                embedding_data = []
+                for text, embedding in zip(texts, docsearch.embeddings):
+                    embedding_data.append((text, *embedding))  # Agregar text y embedding
+                column_names = ["text"] + [f"embedding_{i}" for i in range(embeddings.embedding_size)]
+                df = pd.DataFrame(embedding_data, columns=column_names)
+
+                    # Ruta del archivo CSV
+                csv_filename = "embeddings.csv"
+
+                # Guardar el DataFrame en un archivo CSV
+                df.to_csv(csv_filename, index=False, encoding="utf-8")
+
+                print(f"Los embeddings se han guardado en {csv_filename}")
+
+           
+
                 
-                return docsearch
+
         except Exception as e:
             print("Error:", str(e))
