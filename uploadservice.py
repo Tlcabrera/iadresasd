@@ -58,6 +58,9 @@ class UploadService():
                 #print(texts)
 
                 embeddings = OpenAIEmbeddings()
+
+                #prueba pinecone
+                
                 
                 docsearch = FAISS.from_texts(texts, embeddings)
                 return docsearch

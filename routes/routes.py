@@ -26,7 +26,7 @@ async def generate_response_pdf(prompt:str, file: UploadFile = File(...)):
         #Carga y embedding del archivo
         data=await UploadService().analize_file(file)
         #print(data)
-        #Responde si se envia el similarity search aquí dentro    
+        """#Responde si se envia el similarity search aquí dentro    
         from langchain.chains.question_answering import load_qa_chain
         from langchain.llms import OpenAI
 
@@ -36,7 +36,7 @@ async def generate_response_pdf(prompt:str, file: UploadFile = File(...)):
         return chain.run(input_documents=docs, question=prompt)
 
         #collection_embeddings.insert_one({"filename":file.filename, "embeddings":data})
-        
+        """
     
     except Exception as e:
         print("Error:", str(e))
