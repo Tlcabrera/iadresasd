@@ -11,11 +11,12 @@ from faiss import IndexFlatL2
 
 
 import numpy as np
-import pickle 
+import pinecone 
 
 from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.text_splitter import RecursiveCharacterTextSplitter as RC
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.vectorstores import ElasticVectorSearch, Pinecone, Weaviate, FAISS
+from langchain.vectorstores import Pinecone, FAISS
 from models.model import Prompt
 from config.db import collection_embeddings
 
@@ -61,29 +62,58 @@ class UploadService():
 
                 #prueba pinecone
                 
-                
                 docsearch = FAISS.from_texts(texts, embeddings)
                 return docsearch
 
-                """
-                # Crear una lista para guardar los datos de los embeddings
-                embedding_data = []
-                for text, embedding in zip(texts, docsearch.embeddings):
-                    embedding_data.append((text, *embedding))  # Agregar text y embedding
-                column_names = ["text"] + [f"embedding_{i}" for i in range(embeddings.embedding_size)]
-                df = pd.DataFrame(embedding_data, columns=column_names)
-
-                    # Ruta del archivo CSV
-                csv_filename = "embeddings.csv"
-
-                # Guardar el DataFrame en un archivo CSV
-                df.to_csv(csv_filename, index=False, encoding="utf-8")
-
-                print(f"Los embeddings se han guardado en {csv_filename}")
-            """
+                
+         
            
 
                 
 
         except Exception as e:
             print("Error:", str(e))
+
+    async def embedding_text(self, file: UploadFile = File):
+            try:
+                #Leer archivo
+                from langchain.document_loaders import PyPDFLoader
+                with open(os.path.join(self.path, file.filename), "wb") as f:
+                    content = await file.read()
+                    f.write(content)
+                    f.close()
+                    data=f"./{file.filename}"
+                    reader = PyPDFLoader(data)
+                    fileload = reader.load()
+                                       
+                    #fragmentar los textos
+                    text_splitter = RC(        
+                        chunk_size = 1000,
+                        chunk_overlap  = 50,
+                        length_function = len,
+                    )
+                    texts = text_splitter.split_documents(fileload)
+
+                    print(len(texts))
+                    print(texts[0])
+
+                    embeddings = OpenAIEmbeddings()
+                   
+                    #Enviar vectores a index pinecone
+                    pinecone.init(api_key=os.environ.get('PINECONE_APY_KEY'),environment=os.environ.get('PINECONE_ENV'))
+                    
+                    nombre, extension = os.path.splitext(file.filename)
+                    index_name=nombre.lower()
+
+                    if index_name not in pinecone.list_indexes():
+                        print(f"Creando el índice {index_name} ...")
+                        pinecone.create_index(index_name,dimension=1536,metric='cosine')
+                        print("Done!")
+                    else:
+                        print(f"El índice {index_name} ya existe")
+
+                    vector_store=Pinecone.from_documents(texts,embeddings,index_name=index_name)
+                                       
+
+            except Exception as e:
+                print("Error:", str(e))
