@@ -1,13 +1,11 @@
 # python imports
 import os
-import re
 from os import getcwd
-import pandas as pd
 # FastAPI imports
 
 from PyPDF2 import PdfReader
 from fastapi import UploadFile,File
-from faiss import IndexFlatL2
+from langchain.vectorstores.redis import Redis
 
 
 import numpy as np
@@ -18,7 +16,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter as RC
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import Pinecone, FAISS
 from models.model import Prompt
-from config.db import collection_embeddings
+
 
 
 class UploadService():
@@ -64,12 +62,7 @@ class UploadService():
                 
                 docsearch = FAISS.from_texts(texts, embeddings)
                 return docsearch
-
-                
-         
-           
-
-                
+     
 
         except Exception as e:
             print("Error:", str(e))
@@ -103,17 +96,56 @@ class UploadService():
                     pinecone.init(api_key=os.environ.get('PINECONE_APY_KEY'),environment=os.environ.get('PINECONE_ENV'))
                     
                     nombre, extension = os.path.splitext(file.filename)
-                    index_name=nombre.lower()
+                    index_n=nombre.lower()
 
-                    if index_name not in pinecone.list_indexes():
-                        print(f"Creando el índice {index_name} ...")
-                        pinecone.create_index(index_name,dimension=1536,metric='cosine')
+                    if index_n not in pinecone.list_indexes():
+                        print(f"Creando el índice {index_n} ...")
+                        pinecone.create_index(index_n,dimension=1536,metric='cosine')
                         print("Done!")
                     else:
-                        print(f"El índice {index_name} ya existe")
+                        print(f"El índice {index_n} ya existe")
 
-                    vector_store=Pinecone.from_documents(texts,embeddings,index_name=index_name)
+                    vector_store=Pinecone.from_documents(texts,embeddings,index_name=index_n)
                                        
-
+            
             except Exception as e:
                 print("Error:", str(e))
+
+    # async def generate_embeddings(self, file:UploadFile=File):
+    #     try:
+    #             #Leer archivo
+    #             from langchain.document_loaders import PyPDFLoader
+    #             with open(os.path.join(self.path, file.filename), "wb") as f:
+    #                 content = await file.read()
+    #                 f.write(content)
+    #                 f.close()
+    #                 data=f"./{file.filename}"
+    #                 reader = PyPDFLoader(data)
+    #                 fileload = reader.load()
+                                       
+    #                 #fragmentar los textos
+    #                 text_splitter = RC(        
+    #                     chunk_size = 1000,
+    #                     chunk_overlap  = 50,
+    #                     length_function = len,
+    #                 )
+    #                 docs = text_splitter.split_documents(fileload)
+
+    #                 print(len(docs))
+    #                 print(docs[0])
+
+    #                 embeddings = OpenAIEmbeddings()
+
+    #                 nombre, extension = os.path.splitext(file.filename)
+    #                 index_n=nombre.lower()
+                   
+    #                 # #Enviar vectores a redis
+    #                 # rds = Redis.from_documents(
+    #                 # docs, embeddings, redis_url="redis://localhost:6379", index_name=index_n
+    #                 # )
+                    
+    #                 return rds.index_name              
+            
+    #     except Exception as e:
+    #         print("Error:", str(e))
+       

@@ -24,7 +24,7 @@ routes=APIRouter()
 @routes.get("/")
 def welcome():
     return "Bienvenido a IADRES"
-
+#Endpoint en desuso
 @routes.post("/load-file")  
 async def generate_response_pdf(prompt:str, file: UploadFile = File(...)):
     try:
@@ -42,10 +42,12 @@ async def generate_response_pdf(prompt:str, file: UploadFile = File(...)):
     except Exception as e:
         print("Error:", str(e))
 
+#endpoint que carga archivo, generar embeddings y subir a PineCone
 @routes.post("/load-data")
 async def load_pdf(file: UploadFile = File(...)):
     data=await UploadService().embedding_text(file)
 
+#endpoint que ejecuta prompts sobre archivo pre-cargado
 @routes.post("/send-prompt")
 async def send_prompt(prompt: Prompt, index_name: Prompt):
     pinecone.init(api_key=os.environ.get('PINECONE_APY_KEY'), environment=os.environ.get('PINECONE_ENV'))
@@ -111,4 +113,7 @@ async def send_prompt(prompt: Prompt, index_name: Prompt):
     # except Exception as e:
     #     return f"Error: {e}"
     
-
+#endpoint para cargar archivo, generar emneddings y subir a Redis
+@routes.post("/load-file-redis")
+async def load_pdf(file: UploadFile = File(...)):
+    await UploadService().generar_embeddings(file)
