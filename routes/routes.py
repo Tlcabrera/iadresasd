@@ -12,7 +12,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import ElasticVectorSearch, Pinecone, Weaviate, FAISS
 from langchain.chains.question_answering import load_qa_chain
 from langchain.llms import OpenAI
-from sentence_transformers import SentenceTransformer
+
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQAWithSourcesChain
 
