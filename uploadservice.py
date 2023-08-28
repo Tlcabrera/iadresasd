@@ -111,41 +111,42 @@ class UploadService():
             except Exception as e:
                 print("Error:", str(e))
 
-    # async def generate_embeddings(self, file:UploadFile=File):
-    #     try:
-    #             #Leer archivo
-    #             from langchain.document_loaders import PyPDFLoader
-    #             with open(os.path.join(self.path, file.filename), "wb") as f:
-    #                 content = await file.read()
-    #                 f.write(content)
-    #                 f.close()
-    #                 data=f"./{file.filename}"
-    #                 reader = PyPDFLoader(data)
-    #                 fileload = reader.load()
+    async def generate_embeddings(self, file:UploadFile=File):
+        try:
+                #Leer archivo
+                from langchain.document_loaders import PyPDFLoader
+                with open(os.path.join(self.path, file.filename), "wb") as f:
+                    content = await file.read()
+                    f.write(content)
+                    f.close()
+                    data=f"./{file.filename}"
+                    reader = PyPDFLoader(data)
+                    fileload = reader.load()
                                        
-    #                 #fragmentar los textos
-    #                 text_splitter = RC(        
-    #                     chunk_size = 1000,
-    #                     chunk_overlap  = 50,
-    #                     length_function = len,
-    #                 )
-    #                 docs = text_splitter.split_documents(fileload)
+                    #fragmentar los textos
+                    text_splitter = RC(        
+                        chunk_size = 1000,
+                        chunk_overlap  = 50,
+                        length_function = len,
+                    )
+                    docs = text_splitter.split_documents(fileload)
 
-    #                 print(len(docs))
-    #                 print(docs[0])
+                    print(len(docs))
+                    print(docs[0])
 
-    #                 embeddings = OpenAIEmbeddings()
+                    embeddings = OpenAIEmbeddings()
 
-    #                 nombre, extension = os.path.splitext(file.filename)
-    #                 index_n=nombre.lower()
-                   
-    #                 # #Enviar vectores a redis
-    #                 # rds = Redis.from_documents(
-    #                 # docs, embeddings, redis_url="redis://localhost:6379", index_name=index_n
-    #                 # )
+                    nombre, extension = os.path.splitext(file.filename)
+                    index_n=nombre.lower()
+
+                    redis_client=RedisClient(REDIS_HOST,REDIS_PORT)                    
+                    #Enviar vectores a redis
+                    # rds = Redis.from_documents(
+                    # docs, embeddings, redis_url="redis://127.0.0.1:6379", index_name=index_n
+                    # )
                     
-    #                 return rds.index_name              
+                    return rds.index_name              
             
-    #     except Exception as e:
-    #         print("Error:", str(e))
+        except Exception as e:
+            print("Error:", str(e))
        

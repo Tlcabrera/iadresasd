@@ -116,4 +116,4 @@ async def send_prompt(prompt: Prompt, index_name: Prompt):
 #endpoint para cargar archivo, generar emneddings y subir a Redis
 @routes.post("/load-file-redis")
 async def load_pdf(file: UploadFile = File(...)):
-    await UploadService().generar_embeddings(file)
+    await UploadService().generate_embeddings(file)
