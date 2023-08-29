@@ -5,8 +5,9 @@ import numpy as np
 import pinecone
 import openai
 import os
+import json
 
-
+from redis_client import RedisClient
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import ElasticVectorSearch, Pinecone, Weaviate, FAISS
@@ -76,44 +77,42 @@ async def send_prompt(prompt: Prompt, index_name: Prompt):
     llm=llm,
     chain_type="stuff",
     retriever=vectorstore.as_retriever()
-)
+    )
     answer= qa_with_sources(query)
     return answer
-    # try:
-    #     pinecone.init(api_key=os.environ.get('PINECONE_APY_KEY'), environment=os.environ.get('PINECONE_ENV'))
-
-    #     # Crear una instancia del índice
-    #     index = pinecone.Index(index_name.text)
-
-    #     # Inicializar el modelo SentenceTransformer
-    #     model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-        
-    #     # Texto de consulta
-    #     prompt_text = prompt.text
-        
-    #     # Generar el vector numérico para la consulta
-    #     query_vector = model.encode([prompt_text])[0]
-
-    #     desired_dimension = 1536
-    #     if query_vector.shape[0] != desired_dimension:
-    #         query_vector = np.pad(query_vector, (0, desired_dimension - query_vector.shape[0]), mode='constant')
-
-    #     # Convertir el ndarray a una lista
-    #     query_vector_list = query_vector.tolist()
-        
-    #     # Realizar la búsqueda de similitud utilizando el método query()
-    #     top_k = 1  # Número de resultados relevantes a retornar
-    #     search_results = index.query(queries=[query_vector_list], top_k=top_k)
-
-    #     print(search_results)
-
-    #     return search_results
-             
-          
-    # except Exception as e:
-    #     return f"Error: {e}"
+    
     
 #endpoint para cargar archivo, generar emneddings y subir a Redis
 @routes.post("/load-file-redis")
 async def load_pdf(file: UploadFile = File(...)):
     await UploadService().generate_embeddings(file)
+
+
+@routes.post("/send-prompt-redis")
+async def send_prompt(prompt: Prompt, index_name: Prompt):
+    redis_client=RedisClient(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT'))  
+    # switch back to normal index for langchain
+    key = index_name.text
+    embeddings=OpenAIEmbeddings()
+    
+    embeddings_data = redis_client.get(key)
+    embeddings_list = json.loads(embeddings_data)
+    print (embeddings_list[0])
+        
+    # Texto de consulta
+    query= f"{prompt.text} respuesta en español"
+
+    # completion llm
+    llm = ChatOpenAI(
+        openai_api_key=os.environ.get('OPENAI_API_KEY'),
+        model_name='gpt-3.5-turbo',
+        temperature=0.0,
+    )
+
+    qa_with_sources = RetrievalQAWithSourcesChain.from_chain_type(
+    llm=llm,
+    chain_type="stuff",
+    retriever=embeddings_list.as_retriever()
+    )
+    answer= qa_with_sources(query)
+    return answer

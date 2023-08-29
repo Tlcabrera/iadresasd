@@ -16,8 +16,8 @@ RUN apt-get update
 # Copia el código fuente de la aplicación al contenedor
 COPY . .
 
-# Expone el puerto 3000 para acceder a la aplicación
-EXPOSE 3000
+# Expone el puerto 8000 para acceder a la aplicación
+EXPOSE 8000
 
 # Ejecuta el comando para iniciar la aplicación FastAPI
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
