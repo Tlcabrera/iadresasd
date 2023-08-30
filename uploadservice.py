@@ -140,60 +140,60 @@ class UploadService():
             except Exception as e:
                 print("Error:", str(e))
 
-    async def generate_embeddings(self, file:UploadFile=File):
-        try:
-                #Leer archivo
-                from langchain.document_loaders import PyPDFLoader
-                with open(os.path.join(self.path, file.filename), "wb") as f:
-                    content = await file.read()
-                    f.write(content)
-                    f.close()
-                    data=f"./{file.filename}"
-                    reader = PyPDFLoader(data)
-                    fileload = reader.load()
+    # async def generate_embeddings(self, file:UploadFile=File):
+    #     try:
+    #             #Leer archivo
+    #             from langchain.document_loaders import PyPDFLoader
+    #             with open(os.path.join(self.path, file.filename), "wb") as f:
+    #                 content = await file.read()
+    #                 f.write(content)
+    #                 f.close()
+    #                 data=f"./{file.filename}"
+    #                 reader = PyPDFLoader(data)
+    #                 fileload = reader.load()
                                        
-                    #fragmentar los textos
-                    text_splitter = RC(        
-                        chunk_size = 1000,
-                        chunk_overlap  = 50,
-                        length_function = len,
-                    )
-                    docs = text_splitter.split_documents(fileload)
+    #                 #fragmentar los textos
+    #                 text_splitter = RC(        
+    #                     chunk_size = 1000,
+    #                     chunk_overlap  = 50,
+    #                     length_function = len,
+    #                 )
+    #                 docs = text_splitter.split_documents(fileload)
                     
-                    print(len(docs))
-                    print(docs[0])
+    #                 print(len(docs))
+    #                 print(docs[0])
 
-                    docs = [str(i.page_content) for i in docs] #Lista de parrafos
-                    parrafos = pd.DataFrame(docs, columns=["texto"])
-                    parrafos['Embedding'] = parrafos["texto"].apply(lambda x: get_embedding(x, engine='text-embedding-ada-002')) # Nueva columna con los embeddings de los 
-                    parrafos.to_csv('MTG.csv')
-                    print(parrafos)
+    #                 docs = [str(i.page_content) for i in docs] #Lista de parrafos
+    #                 parrafos = pd.DataFrame(docs, columns=["texto"])
+    #                 parrafos['Embedding'] = parrafos["texto"].apply(lambda x: get_embedding(x, engine='text-embedding-ada-002')) # Nueva columna con los embeddings de los 
+    #                 parrafos.to_csv('MTG.csv')
+    #                 print(parrafos)
 
-                    embeddings_list = []
-                    for idx, row in parrafos.iterrows():
-                        embedding = row["Embedding"]
-                        embeddings_list.append({"text": row["texto"], "embedding": embedding})
+    #                 embeddings_list = []
+    #                 for idx, row in parrafos.iterrows():
+    #                     embedding = row["Embedding"]
+    #                     embeddings_list.append({"text": row["texto"], "embedding": embedding})
                     
 
-                    # embeddings = OpenAIEmbeddings()
+    #                 # embeddings = OpenAIEmbeddings()
 
-                    nombre, extension = os.path.splitext(file.filename)
-                    key=nombre.lower()
+    #                 nombre, extension = os.path.splitext(file.filename)
+    #                 key=nombre.lower()
 
-                    redis_client=RedisClient(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT'))   
+    #                 redis_client=RedisClient(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT'))   
 
-                    if not redis_client.exists(key):         
-                        time.sleep(1)
-                        print("Creando embedding para: "+key)
-                        redis_client.set(key, json.dumps(embeddings_list))  
+    #                 if not redis_client.exists(key):         
+    #                     time.sleep(1)
+    #                     print("Creando embedding para: "+key)
+    #                     redis_client.set(key, json.dumps(embeddings_list))  
 
-                    else:
-                        embeddings_data = redis_client.get(key)
-                        embeddings_list = json.loads(embeddings_data)
+    #                 else:
+    #                     embeddings_data = redis_client.get(key)
+    #                     embeddings_list = json.loads(embeddings_data)
 
-                    return embeddings_list           
+    #                 return embeddings_list           
                   
             
-        except Exception as e:
-            print("Error:", str(e))
+    #     except Exception as e:
+    #         print("Error:", str(e))
        
