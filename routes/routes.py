@@ -26,27 +26,27 @@ routes=APIRouter()
 def welcome():
     return "Bienvenido a IADRES"
 #Endpoint en desuso
-@routes.post("/load-file")  
-async def generate_response_pdf(prompt:str, file: UploadFile = File(...)):
-    try:
-        #Carga y embedding del archivo
-        data=await UploadService().analize_file(file)
-        print(data)
-        #Responde si se envia el similarity search aquí dentro      
+# # @routes.post("/load-file")  
+# # async def generate_response_pdf(prompt:str, file: UploadFile = File(...)):
+#     try:
+#         #Carga y embedding del archivo
+#         data=await UploadService().analize_file(file)
+#         print(data)
+#         #Responde si se envia el similarity search aquí dentro      
 
-        chain = load_qa_chain(OpenAI(), chain_type="stuff")  
+#         chain = load_qa_chain(OpenAI(), chain_type="stuff")  
        
-        docs = data.similarity_search(prompt)
-        return chain.run(input_documents=docs, question=prompt)
+#         docs = data.similarity_search(prompt)
+#         return chain.run(input_documents=docs, question=prompt)
 
     
-    except Exception as e:
-        print("Error:", str(e))
+#     except Exception as e:
+#         print("Error:", str(e))
 
 #endpoint que carga archivo, generar embeddings y subir a PineCone
 @routes.post("/load-data")
 async def load_pdf(file: UploadFile = File(...)):
-    data=await UploadService().embedding_text(file)
+    await UploadService().embedding_text(file)
 
 #endpoint que ejecuta prompts sobre archivo pre-cargado
 @routes.post("/send-prompt")
@@ -84,8 +84,8 @@ async def send_prompt(prompt: Prompt, index_name: Prompt):
     
 #endpoint para cargar archivo, generar emneddings y subir a Redis
 @routes.post("/load-file-redis")
-async def load_pdf(file: UploadFile = File(...)):
-    await UploadService().generate_embeddings(file)
+# async def load_pdf(file: UploadFile = File(...)):
+#     await UploadService().generate_embeddings(file)
 
 
 @routes.post("/send-prompt-redis")

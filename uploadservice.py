@@ -108,14 +108,33 @@ class UploadService():
                     nombre, extension = os.path.splitext(file.filename)
                     index_n=nombre.lower()
 
-                    if index_n not in pinecone.list_indexes():
+                    active_indexes = pinecone.list_indexes()
+                    if active_indexes   == []:
+                        print("La lista está vacía")
+                        if index_n not in pinecone.list_indexes():
+                            print(f"Creando el índice {index_n} ...")
+                            pinecone.create_index(index_n,dimension=1536,metric='cosine')
+                            print("Done!")
+                            vector_store=Pinecone.from_documents(texts,embeddings,index_name=index_n)
+
+                        else:
+                            print(f"El índice {index_n} ya existe puedes ejecutar tus prompts")
+                        
+                    else:
+                        index_delete=pinecone.list_indexes()[0]
+                        pinecone.delete_index(index_delete)
+                        print(f"Eliminando el índice {active_indexes[0]}...")
                         print(f"Creando el índice {index_n} ...")
                         pinecone.create_index(index_n,dimension=1536,metric='cosine')
                         print("Done!")
-                    else:
-                        print(f"El índice {index_n} ya existe")
-
+                        
                     vector_store=Pinecone.from_documents(texts,embeddings,index_name=index_n)
+                    return "archivo cargado " + index_n
+                       
+                    
+             
+                        
+                       
                                        
             
             except Exception as e:
