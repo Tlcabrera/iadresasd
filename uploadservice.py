@@ -146,8 +146,8 @@ class UploadService():
                     vector_store=Pinecone.from_documents(texts,embeddings,index_name=index_n)
                     return "archivo cargado " + index_n                  
             
-            except Exception as e:
-                print("Error:", str(e))
+        except Exception as e:
+            print("Error:", str(e))
 
     # async def generate_embeddings(self, file:UploadFile=File):
     #     try:
