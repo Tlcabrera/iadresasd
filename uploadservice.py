@@ -15,6 +15,7 @@ import pickle
 
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter as RC
 from langchain.vectorstores import ElasticVectorSearch, Pinecone, Weaviate, FAISS
 from models.model import Prompt
 from config.db import collection_embeddings
@@ -81,6 +82,72 @@ class UploadService():
 
                 print(f"Los embeddings se han guardado en {csv_filename}")
             """
+           
+
+                
+
+        except Exception as e:
+            print("Error:", str(e))
+
+
+    async def embedding_file(self, file: UploadFile = File):
+        try:
+             with open(os.path.join(self.path, file.filename), "wb") as f:
+                content = await file.read()
+                f.write(content)
+                f.close()
+                data=f"./{file.filename}"
+                reader = PdfReader(data)
+                #print(reader)
+                # read data from the file and put them into a variable called raw_text
+                raw_text = ''
+                for i, page in enumerate(reader.pages):
+                    text = page.extract_text()
+                    if text:
+                        raw_text += text
+
+                #print(raw_text[:100])
+                # We need to split the text that we read into smaller chunks so that during information retreival we don't hit the token size limits. 
+
+                text_splitter = RC(       
+                    chunk_size = 1000,
+                    chunk_overlap  = 50,
+                    length_function = len,
+                )
+                texts = text_splitter.split_text(raw_text)
+
+                print(len(texts))
+                embeddings = OpenAIEmbeddings()
+                docsearch = FAISS.from_texts(texts, embeddings)
+                
+                #print(texts[0])
+  
+                #Crear embeddings
+                def creando_vectores(index_name):
+                    import pinecone
+                    from langchain.vectorstores import Pinecone
+                    from langchain.embeddings.openai import OpenAIEmbeddings
+                    
+                    embeddings = OpenAIEmbeddings()
+                    
+                    pinecone.init(api_key=os.environ.get('PINECONE_API_KEY'), 
+                                environment=os.environ.get('PINECONE_ENV'))
+                    
+                    if index_name in pinecone.list_indexes():
+                        print(f'El índice {index_name} ya existe. Cargando los embeddings ... ', end='')
+                        vectores = Pinecone.from_existing_index(index_name, embeddings)
+                        print('Ok')
+                    else:
+                        print(f'Creando el índice {index_name} y los embeddings ...', end='')
+                        pinecone.create_index(index_name, dimension=1536, metric='cosine')
+                        vectores = Pinecone.from_documents(docsearch, embeddings, index_name=index_name)
+                        print('Ok')
+                        
+                    return vectores
+                
+                vectores=creando_vectores("file")
+               
+                
            
 
                 

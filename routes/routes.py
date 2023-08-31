@@ -78,3 +78,24 @@ async def test_prompt(prompt:Prompt):
     
     except Exception as e:
         print("Error:", str(e))
+
+@routes.post("/load-pdf")  
+async def generate_response_pdf(file: UploadFile = File(...)):
+    try:
+        #Carga y embedding del archivo
+        data=await UploadService().embedding_file(file)
+        
+        """#Responde si se envia el similarity search aquí dentro    
+        from langchain.chains.question_answering import load_qa_chain
+        from langchain.llms import OpenAI
+
+        chain = load_qa_chain(OpenAI(), chain_type="stuff")  
+       
+        docs = data.similarity_search(prompt)
+        return chain.run(input_documents=docs, question=prompt)
+
+        #collection_embeddings.insert_one({"filename":file.filename, "embeddings":data})
+        """
+    
+    except Exception as e:
+        print("Error:", str(e))
