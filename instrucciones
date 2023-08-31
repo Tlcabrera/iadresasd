@@ -1,8 +1,17 @@
-Activar entorno 
-tutorial-env\Scripts\activate.bat
+#Crear entorno
+python -m venv env
 
-Correr el servidor de fast-api
-uvicorn main:app --port 3000 --reload
+#Activar entorno 
+env\Scripts\activate.bat
 
-Acceder al servidor local
-http://127.0.0.1:3000/docs
+#Instalar paquetes desde requirements
+python -m pip install -r requirements.txt
+
+#Crear requirements
+python -m pip freeze > requirements.txt
+
+#Correr el servidor de fast-api
+uvicorn main:app --port 8000 --reload
+
+#Acceder al servidor local
+http://127.0.0.1:8000/docs
