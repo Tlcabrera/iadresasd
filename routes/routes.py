@@ -6,6 +6,7 @@ import pinecone
 import openai
 import os
 import json
+import faiss
 
 from redis_client import RedisClient
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -16,6 +17,7 @@ from langchain.llms import OpenAI
 
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQAWithSourcesChain
+
 
 routes=APIRouter()
 
@@ -83,36 +85,50 @@ async def send_prompt(prompt: Prompt, index_name: Prompt):
     
     
 #endpoint para cargar archivo, generar emneddings y subir a Redis
-# @routes.post("/load-file-redis")
-# async def load_pdf(file: UploadFile = File(...)):
-#     await UploadService().generate_embeddings(file)
+@routes.post("/load-file-redis")
+async def load_pdf(file: UploadFile = File(...)):
+    await UploadService().generate_embeddings(file)
 
 
-# @routes.post("/send-prompt-redis")
-# async def send_prompt(prompt: Prompt, index_name: Prompt):
-#     redis_client=RedisClient(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT'))  
-#     # switch back to normal index for langchain
-#     key = index_name.text
-#     embeddings=OpenAIEmbeddings()
+@routes.post("/send-prompt-redis")
+async def send_prompt_redis(prompt: Prompt, index_name: Prompt):
+ 
+    redis_client = RedisClient(os.environ.get('REDIS_HOST'), os.environ.get('REDIS_PORT'))  
     
-#     embeddings_data = redis_client.get(key)
-#     embeddings_list = json.loads(embeddings_data)
-#     print (embeddings_list[0])
+    # Recuperar los embeddings almacenados en Redis
+    key = index_name.text
+    embeddings_data = redis_client.get(key)
+    embeddings_list = json.loads(embeddings_data)
+    #print(embeddings_list)
+    
+    # Preparar embeddings y textos para la búsqueda
+    embeddings = []
+    texts = []
+    for item in embeddings_list:
+        embeddings.append(item["embedding"])
+        texts.append(item["text"])
+    #print (texts)
+    #print (embeddings)
+    
+    dict_from_list = {k: e for k, e in zip(texts, embeddings)}
+    #print(dict_from_list)
         
-#     # Texto de consulta
-#     query= f"{prompt.text} respuesta en español"
+    # Consulta el índice con un embedding
+    query = {prompt.text}  # Reemplaza con tu función para obtener el embedding
+   
+    # completion llm
+    llm = ChatOpenAI(
+        openai_api_key=os.environ.get('OPENAI_API_KEY'),
+        model_name='gpt-3.5-turbo',
+        temperature=0.0,
+    )
 
-#     # completion llm
-#     llm = ChatOpenAI(
-#         openai_api_key=os.environ.get('OPENAI_API_KEY'),
-#         model_name='gpt-3.5-turbo',
-#         temperature=0.0,
-#     )
-
-#     qa_with_sources = RetrievalQAWithSourcesChain.from_chain_type(
-#     llm=llm,
-#     chain_type="stuff",
-#     retriever=embeddings_list.as_retriever()
-#     )
-#     answer= qa_with_sources(query)
-#     return answer
+    qa_with_sources = RetrievalQAWithSourcesChain.from_chain_type(
+    llm=llm,
+    chain_type="stuff",
+    retriever= dict_from_list.as_retriever()
+    )
+    answer= qa_with_sources(query)
+    return answer
+  
+    
