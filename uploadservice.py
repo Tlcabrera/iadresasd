@@ -129,7 +129,7 @@ class UploadService():
                         print("Done!")
                         
                     vector_store=Pinecone.from_documents(texts,embeddings,index_name=index_n)
-                    return "archivo cargado " + index_n
+                    return index_n
                        
                     
              

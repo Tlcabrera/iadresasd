@@ -46,7 +46,8 @@ def welcome():
 #endpoint que carga archivo, generar embeddings y subir a PineCone
 @routes.post("/load-data")
 async def load_pdf(file: UploadFile = File(...)):
-    await UploadService().embedding_text(file)
+    filename=await UploadService().embedding_text(file)
+    return filename
 
 #endpoint que ejecuta prompts sobre archivo pre-cargado
 @routes.post("/send-prompt")
